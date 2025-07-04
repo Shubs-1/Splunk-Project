@@ -25,6 +25,5 @@ Before analyzing DNS logs in Splunk, ensure the following:
 index=dns_lab sourcetype="json"
 | stats count by query
 | sort -count
-
-
 ```
+![DNSI1!](https://github.com/Shubs-1/Splunk-Project/blob/main/DNS%20I1.png)
