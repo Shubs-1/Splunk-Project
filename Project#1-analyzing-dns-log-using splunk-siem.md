@@ -17,9 +17,14 @@ Before analyzing DNS logs in Splunk, ensure the following:
 
 ## Steps to Analyze DNS Log Files in Splunk SIEM
 
-### 1. Search for DNS Events   
+### Task 1: Identify the most frequently queried domain names
+  
 - Open Splunk interface and navigate to the search bar.   
 - Enter the following search query to retrieve DNS events   
 ```
-index=* sourcetype=dns_sample
+index=dns_lab sourcetype="json"
+| stats count by query
+| sort -count
+
+
 ```
