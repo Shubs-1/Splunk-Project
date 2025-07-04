@@ -14,3 +14,12 @@ Before analyzing DNS logs in Splunk, ensure the following:
 - Obtain sample [DNS log file](https://www.secrepo.com/maccdc2012/dns.log.gz) in a suitable format (e.g., text files).
 - Ensure the log files contain relevant DNS events, including source IP, destination IP, domain name, query type, response code, etc.
 - Save the sample log files in a directory accessible by the Splunk instance.
+
+## Steps to Analyze DNS Log Files in Splunk SIEM
+
+### 1. Search for DNS Events   
+- Open Splunk interface and navigate to the search bar.   
+- Enter the following search query to retrieve DNS events   
+```
+index=* sourcetype=dns_sample
+```
