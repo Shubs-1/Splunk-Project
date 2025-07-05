@@ -63,10 +63,10 @@ index=* sourcetype=dns_sample | regex _raw="(?i)\b(dns|domain|query|response|por
 ```
 ![DNS I5](https://github.com/user-attachments/assets/5f5a45be-2687-4897-9b2b-a453c18d2feb)
 
-Regex:
-• (?i) makes the pattern case-insensitive.
-• \b denotes word boundaries, so you match whole words only (e.g. it catches "DNS" but not "dnslookup").
-(dns|domain|query|response|port 53) uses a group with alternation to match any of those specific DNS-related terms.
+  Regex:
+- (?i) makes the pattern case-insensitive.
+- \b denotes word boundaries, so you match whole words only (e.g. it catches "DNS" but not "dnslookup").
+- (dns|domain|query|response|port 53) uses a group with alternation to match any of those specific DNS-related terms.
 
 ### 3. Match Fully Qualified Domain Names (FQDNs)
 
@@ -82,3 +82,53 @@ index="*" sourcetype=dns | regex _raw="\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b"
 - [a-zA-Z]{2,} captures the top-level domain (like .com, .in, .org), requiring at least two alphabetic characters.
   The final \b keeps it cleanly bounded.
 
+### 4. Detect Suspiciously Long Subdomains (Tunneling Clue)
+
+This regex filters for fully qualified domain names (FQDNs) with four or more labels, which is super relevant in detecting suspicious or unusually nested domains—common in DNS tunneling or command-and-control traffic.
+```
+index="*" sourcetype=dns | regex _raw="\b(?:[a-zA-Z0-9-]+\.){4,}[a-zA-Z]{2,}\b"
+```
+![DNS I7](https://github.com/user-attachments/assets/e18a6134-fcdc-4cd3-a260-48f6c2b473e9)
+
+  Regex : 
+- \b → Word boundary to anchor the match neatly.
+- (?:[a-zA-Z0-9-]+\.){4,} → A non-capturing group that matches at least four domain parts (e.g. sub.sub.sub.sub.).
+- [a-zA-Z]{2,} → The top-level domain (e.g. com, info, xyz), requiring at least 2 characters.
+- Final \b → Ensures we don’t match trailing punctuation or partial words.
+
+This makes it a solid detector for potential data exfiltration attempts or suspicious domain generation. You could even pair it with entropy checks or frequency analysis on the subdomains for deeper threat detection.
+
+### 5. Reverse DNS Lookup Detection
+This regex is tailored to match reverse DNS lookup addresses in the .in-addr.arpa domain, which is how IP-to-hostname mappings are queried for IPv4 addresses. 
+This is great for spotting PTR record queries or DNS logs involving reverse lookups.
+```
+ index="*" sourcetype=dns | regex _raw="\b(\d{1,3}\.){3}\d{1,3}\.in-addr\.arpa\b"
+```
+![DNS I8](https://github.com/user-attachments/assets/f30029cc-bea3-416a-a566-1e5dd1d7bd61)
+
+Regex : 
+- \b → Word boundary to anchor the pattern.
+- (\d{1,3}\.){3} → Matches three groups of 1–3 digits followed by a dot, essentially the first three octets of an IPv4 address.
+- \d{1,3} → The last octet of the IP.
+- \.in-addr\.arpa → Matches the literal domain used in reverse DNS zones.
+- Final \b → Ensures a clean word boundary at the end.
+
+### 6. Identify Anomalies
+anomalies refer to unusual or unexpected patterns in DNS traffic that deviate from normal behavior. These can be early indicators of misconfigurations, performance issues, or even cyber threats like data exfiltration or malware communication.
+		• Look for unusual patterns or anomalies in DNS activity.
+		• Example query to identify spikes
+	
+```
+ index="*" sourcetype=dns | stats count by fqdn |sort - count
+ ```
+![DNS I9](https://github.com/user-attachments/assets/80e85bfc-9d9e-4c51-9ff6-2ed4a28cbc33)
+
+1. index="*"
+		• This tells Splunk to search across all indexes. It’s broad and useful when you're not sure where the data is stored or if your data spans multiple indexes.
+2. sourcetype=dns
+		• This filters events to only those tagged with the dns sourcetype, so you’re focusing purely on DNS-related logs.
+3. stats count by fqdn
+		• This command groups events by the fqdn (fully qualified domain name) field and counts how many times each domain appears in the dataset.
+		• So, you're basically saying: “How many DNS queries did I see for each unique domain?”
+4. sort - count
+The - means descending order, so this step orders the output from the most-queried domain to the least-queried.
