@@ -132,3 +132,28 @@ anomalies refer to unusual or unexpected patterns in DNS traffic that deviate fr
 		• So, you're basically saying: “How many DNS queries did I see for each unique domain?”
 4. sort - count
 The - means descending order, so this step orders the output from the most-queried domain to the least-queried.
+
+### 7. Identify the most frequently queried domain names
+```
+index=dns_lab sourcetype="json"
+| stats count by query
+| sort -count
+```
+![DNS I1](https://github.com/user-attachments/assets/d00aea26-d4ad-4d12-b2b3-67657ae71c54)
+
+### 8. Find the most active user IPs generating DNS traffic![image](https://github.com/user-attachments/assets/357d4a7b-32dc-49dd-a021-cc999ff00fdf)
+
+```
+index=dns_lab sourcetype="json"
+| stats count by "id.orig_h"
+| sort -count
+```
+![DNS I2](https://github.com/user-attachments/assets/c65f8304-a4db-411a-be44-1a447ee843c6)
+
+### 9. Breakdown of DNS query types (A, AAAA, CNAME, PTR)
+
+```
+index=dns_lab sourcetype="json"
+| stats count by qtype
+```
+![DNS I3](https://github.com/user-attachments/assets/ad7bb362-a50c-4374-8e11-1580e60bf336)
