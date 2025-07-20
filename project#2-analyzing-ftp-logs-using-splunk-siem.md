@@ -75,3 +75,13 @@ index="*" sourcetype=FTP_Logs
 - (?<username>\w+): Matches and captures the username (assuming it consists of alphanumeric characters).
 - (?<command>[A-Z]+): Matches and captures the FTP command (assuming it consists of uppercase letters).
 - (?<file_path>\/[\w\/.-]+): Matches and captures the file path (assuming it starts with "/" and can contain alphanumeric characters, "/", ".", and "-").
+
+### 3. Analyze File Transfer Activity
+#### a. Determine the frequency and volume of file transfers.:
+- To determine frequency and volume of file transfers from your FTP logs, we need to isolate events that represent file transfers—typically commands like STOR (upload) and RETR (download) are your key indicators.
+- Example extraction command
+  
+```
+index="*" sourcetype=FTP_Logs command="STOR" OR command="RETR" | stats count by command | rename count as transfer_files
+```
+<img width="1520" height="302" alt="FTP I3" src="https://github.com/user-attachments/assets/dbe71147-85df-47fe-a526-2a9b2f9834d5" />
