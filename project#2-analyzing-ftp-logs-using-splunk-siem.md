@@ -77,7 +77,7 @@ index="*" sourcetype=FTP_Logs
 - (?<file_path>\/[\w\/.-]+): Matches and captures the file path (assuming it starts with "/" and can contain alphanumeric characters, "/", ".", and "-").
 
 ### 3. Analyze File Transfer Activity
-#### a. Determine the frequency and volume of file transfers.:
+#### a. Determine the frequency and volume of file transfers:
 - To determine frequency and volume of file transfers from your FTP logs, we need to isolate events that represent file transfers—typically commands like STOR (upload) and RETR (download) are your key indicators.
 - Example extraction command
   
@@ -85,3 +85,49 @@ index="*" sourcetype=FTP_Logs
 index="*" sourcetype=FTP_Logs command="STOR" OR command="RETR" | stats count by command | rename count as transfer_files
 ```
 <img width="1520" height="302" alt="FTP I3" src="https://github.com/user-attachments/assets/dbe71147-85df-47fe-a526-2a9b2f9834d5" />
+
+#### b. Identify top users or IP addresses involved in file transfers : 
+- This will help to identified involved IP address in transfer
+- Example extraction command
+  
+```
+• index="*" sourcetype=FTP_Logs command="STOR" OR command="RETR" | stats count by command, src_ip, dst_ip | rename count as transfer_files
+```
+<img width="1482" height="645" alt="FTP I4" src="https://github.com/user-attachments/assets/c7137667-e4cc-4f95-99d4-80fe31bd424e" />
+
+#### c. Analyze the types of files being transferred (e.g., documents, executables, archives) :
+- Example extraction command
+  
+```
+index="*" sourcetype=FTP_Logs command="STOR" OR command="RETR" | rex "command=\w+\s+(?<filename>[\S]+)" | stats count by command files
+```
+<img width="1478" height="636" alt="FTP I5" src="https://github.com/user-attachments/assets/5e80fb29-21f6-4a22-8926-6606795ea120" />
+
+### 4. Analyze File Transfer Activity
+#### a. Look for unusual patterns in file transfer activity :
+
+- Identify anomalies in file transfer volume, timing, or destinations
+- Detect unauthorized access or suspicious user behavior
+- Spot rare or sensitive file types being transferred (e.g., .exe, .zip, .docx)
+- Example extraction command
+  
+```
+index="*" sourcetype=FTP_Logs | stats count sum(bytes_transfer) by User_ID, command, file
+```
+<img width="1372" height="610" alt="FTP I6" src="https://github.com/user-attachments/assets/8678013f-6c47-4ae1-bdd2-7575b7ede2fa" />
+
+#### b. Analyze sudden spikes or drops in file transfer volume :
+
+```
+index="*" sourcetype=FTP_Logs | timechart span=15m sum(bytes_transfer) as "total_transfer" by User_ID
+```
+<img width="1387" height="442" alt="FTP I7" src="https://github.com/user-attachments/assets/5b19c2ca-cbe7-4585-8788-358bb2c2ea8b" />
+
+#### c. Investigate file transfers to or from suspicious IP addresses :
+
+```
+index="*" sourcetype=FTP_Logs command="STOR" OR command="RETR" | stats count by command, src_ip, dst_ip, file | rename count as transfer_files
+```
+<img width="1523" height="637" alt="FTP I8" src="https://github.com/user-attachments/assets/0cff8194-6f5c-4dcb-b664-696c1db1cd61" />
+
+
