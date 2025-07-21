@@ -45,3 +45,62 @@ Before starting the project, ensure the following:
 
 
 ## Steps to Analyze SSH Log Files in Splunk SIEM
+
+### 1. Search for SSH Events
+  
+- Open Splunk interface and navigate to the search bar.
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs
+```
+<img width="1572" height="641" alt="SSH I1" src="https://github.com/user-attachments/assets/568a5bd8-6057-4653-ad00-63d317f8e368" />
+
+### 2. Search for SSH Events
+  
+- Identify top users or source IP addresses accessing the SSH server:
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs" | top limit=10 src_ip
+```
+<img width="1433" height="423" alt="SSH I2" src="https://github.com/user-attachments/assets/ee94ca0d-36ec-4324-9b2d-e50b48856a42" />
+
+### 3. Analyze successful vs. failed SSH login attempts:
+
+  
+- It will give you the count of both successfull and failed SSH login event
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs" | stats count by login_status
+
+```
+<img width="1482" height="282" alt="SSH I3" src="https://github.com/user-attachments/assets/b34938aa-7e34-4a8e-a21a-8989a02c595b" />
+
+### 4. Detect Anomalies
+#### a. Analyze failed login attempts:
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs" | search login_status="failure"
+```
+<img width="1412" height="640" alt="SSH I4" src="https://github.com/user-attachments/assets/3b240cb4-2e6b-4de8-ab47-e2c3cded26da" />
+
+#### b. High frequency of failed logins
+
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs" | search login_status="failure" | stats count by src_ip
+| where count > 10 | sort -count
+```
+<img width="1437" height="597" alt="SSH I5" src="https://github.com/user-attachments/assets/bd23ed04-911e-41af-a673-0665409a12fe" />
+
+#### c. Spot outliers in traffic volume or behavior
+- It will give output with rare IP addresses.
+- Enter the following search query to retrieve SSH
+```
+source="ssh.log.gz" sourcetype="SSHlogs" | stats count by src_ip
+| eventstats avg(count) as avg_count stdev(count) as std_dev
+| where count > avg_count + (2 * std_dev)<img width="561" height="68" alt="image" src="https://github.com/user-attachments/assets/e55674b7-0c4d-40e9-a821-5844d8bddd34" />
+
+```
+<img width="1518" height="281" alt="SSH I6" src="https://github.com/user-attachments/assets/04105330-7cd4-4416-aa1b-282d40ec64a6" />
+
+
